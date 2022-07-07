@@ -1,6 +1,5 @@
-mod midiobj;
+use midi::{MidiObj};
 
 fn main() {
-    let obj: midiobj::MidiObj = midiobj::new_midi_object(); 
-    println!("{:?}", obj);
+    let _obj: MidiObj = MidiObj::new(); 
 }
