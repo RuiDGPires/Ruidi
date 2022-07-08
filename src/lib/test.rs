@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests{
-    use super::super::{MidiObj, Voice, Note};
+    use super::super::{MidiObj, Voice, Note, util::VarLen};
 
     #[test]
     fn create_empty_midi_obj(){
@@ -41,4 +41,15 @@ mod tests{
         assert!(obj.voices[0].notes[2].duration == 3);
     }
 
+    #[test]
+    fn varlen_read(){
+        assert!(VarLen::read(&[0x00]).val == 0x00);
+        assert!(VarLen::read(&[0x40]).val == 0x40);
+        assert!(VarLen::read(&[0x7F]).val == 0x7F);
+        assert!(VarLen::read(&[0x81, 0x00]).val == 0x80);
+        assert!(VarLen::read( &[0xC0, 0x00, 0x01, 0x7F]).val == 0x2000);
+        assert!(VarLen::read( &[0xFF, 0x7F, 0xFF]).val == 0x3FFF);
+        assert!(VarLen::read( &[0x81, 0x80, 0x00]).val == 0x4000);
+    }
 }
+

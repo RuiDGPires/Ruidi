@@ -1,4 +1,5 @@
 mod test;
+mod util;
 
 pub struct Note {
     vel: u32,
@@ -50,7 +51,6 @@ impl MidiObj {
        obj 
     }
 
-
     pub fn add_voice(&mut self) -> &mut MidiObj {
         self.voices.push(Voice::new()); 
         self
@@ -59,5 +59,11 @@ impl MidiObj {
     pub fn add_note(&mut self, voice: usize, note: Note) -> &mut MidiObj {
         self.voices[voice].add_note(note);
         self
+    }
+
+    pub fn from_file(filename: char) -> MidiObj{
+       let mut obj = MidiObj::new(); 
+
+       obj
     }
 }
