@@ -62,7 +62,7 @@ impl MidiObj {
     }
 
     pub fn from_file(filename: char) -> MidiObj{
-       let mut obj = MidiObj::new(); 
+       let obj = MidiObj::new(); 
 
        obj
     }
