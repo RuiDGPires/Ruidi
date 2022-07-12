@@ -1,21 +1,21 @@
 #[cfg(test)]
 mod tests{
-    use super::super::{MidiObj, Voice, Note, util::VarLen};
+    use super::super::{MidiObj, Voice, Note, util::VarLen, stream::FileByteInStream, stream::InStream};
 
     #[test]
-    fn create_empty_midi_obj(){
+    fn create_empty_midi_obj() {
         let obj: MidiObj = MidiObj::new(); 
         assert!(obj.voices.is_empty());
     }
 
     #[test]
-    fn create_empty_voice_obj(){
+    fn create_empty_voice_obj() {
         let voice: Voice = Voice::new(); 
         assert!(voice.notes.is_empty());
     }
 
     #[test]
-    fn add_voice_to_midiobj(){
+    fn add_voice_to_midiobj() {
         let mut obj: MidiObj = MidiObj::new(); 
         obj.add_voice();
         assert!(!obj.voices.is_empty());
@@ -23,7 +23,7 @@ mod tests{
     }
 
     #[test]
-    fn add_note(){
+    fn add_note() {
         let mut obj: MidiObj = MidiObj::new_sized(1); 
         assert!(!obj.voices.is_empty());
         obj.add_note(0, Note::new(10, 15, 20));
@@ -42,7 +42,7 @@ mod tests{
     }
 
     #[test]
-    fn varlen_read(){
+    fn varlen_read() {
         assert!(VarLen::read(&[0x00]).val == 0x00);
         assert!(VarLen::read(&[0x40]).val == 0x40);
         assert!(VarLen::read(&[0x7F]).val == 0x7F);
@@ -53,7 +53,7 @@ mod tests{
     }
 
     #[test]
-    fn varlen_write(){
+    fn varlen_write() {
         let bytes1 = &[0x00];
         assert!(&VarLen::read(bytes1).write()[..] == bytes1);
         let bytes2 = &[0x40];
@@ -68,6 +68,15 @@ mod tests{
         assert!(&VarLen::read(bytes6).write()[..] == bytes6);
         let bytes7 = &[0x81, 0x80, 0x00];
         assert!(&VarLen::read(bytes7).write()[..] == bytes7);
+    }
+
+    #[test]
+    fn filestream_read() {
+        let mut filestream = FileByteInStream{contents: vec![0, 1, 2], pos: 0};
+
+        assert_eq!(filestream.read(), Some(&0));
+        assert_eq!(filestream.read(), Some(&1));
+        assert_eq!(filestream.read(), Some(&2));
     }
 }
 
