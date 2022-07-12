@@ -1,5 +1,6 @@
 use std::io::Read;
 
+
 pub trait InStream<T> {
     fn read(&mut self) -> Option<&T>;
 }
@@ -10,12 +11,12 @@ trait OutStream<T> {
 }
 
 pub struct FileByteInStream {
-    pub contents: Vec<u8>,
-    pub pos: usize, // this should be changed to use iterators
+    contents: Vec<u8>,
+    pos: usize, // this should be changed to use iterators
 }
 
 impl FileByteInStream {
-    fn new(filename: String) -> Self {
+    pub fn new(filename: String) -> Self {
         let mut contents = Vec::new();
 
         std::fs::File::open(filename)

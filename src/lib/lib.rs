@@ -1,6 +1,6 @@
 mod test;
 mod util;
-mod stream;
+pub mod stream;
 
 pub struct Note {
     vel: u32,

@@ -69,14 +69,5 @@ mod tests{
         let bytes7 = &[0x81, 0x80, 0x00];
         assert!(&VarLen::read(bytes7).write()[..] == bytes7);
     }
-
-    #[test]
-    fn filestream_read() {
-        let mut filestream = FileByteInStream{contents: vec![0, 1, 2], pos: 0};
-
-        assert_eq!(filestream.read(), Some(&0));
-        assert_eq!(filestream.read(), Some(&1));
-        assert_eq!(filestream.read(), Some(&2));
-    }
 }
 
