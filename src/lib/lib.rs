@@ -61,10 +61,23 @@ impl MidiObj {
         self.voices[voice].add_note(note);
         self
     }
+}
 
-    pub fn from_file(filename: char) -> MidiObj{
-       let obj = MidiObj::new(); 
+fn check_str<T: stream::InStream<u8>>(stream: &mut T, string: &str) -> bool {
+    for c in string.chars() {
+        if stream.read() != Some(&(c as u8)) {
+            return false;
+        }
+    }
+    true
+}
 
-       obj
+impl stream::Sourceable<u8> for MidiObj {
+    fn from_file<T: stream::InStream<u8>>(mut stream: T) -> Result<Box<Self>, String> {
+        if check_str(&mut stream, "MThd") {
+            Ok(Box::new(Self::new()))
+        } else {
+            Err(String::from("Invalid Midi file"))
+        }
     }
 }

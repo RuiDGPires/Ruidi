@@ -1,5 +1,8 @@
 use std::io::Read;
 
+pub trait Sourceable<I> {
+    fn from_file<T: InStream<I>>(stream: T) -> Result<Box<Self>, String>;
+}
 
 pub trait InStream<T> {
     fn read(&mut self) -> Option<&T>;
