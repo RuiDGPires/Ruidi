@@ -1,5 +1,4 @@
 mod tests;
-mod util;
 pub mod io;
 
 pub struct Note {
