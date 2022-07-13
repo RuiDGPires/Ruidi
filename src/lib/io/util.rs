@@ -2,14 +2,18 @@ use super::stream;
 
 pub struct VarLen {
     pub val: u32,
+    pub size: u8,
 }
 
 impl VarLen {
     pub fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
         let mut val: u32 = 0;
+        let mut size: u8 = 0;
+
         loop {
             match stream.read() {
                 Some(v) => {
+                    size += 1;
                     let tmp: u8 = v & 0x7F; 
                     val = (val << 7) | tmp as u32;
                     if v & 0x80 == 0 {break;}
@@ -17,7 +21,7 @@ impl VarLen {
                 None => {return Err(String::from("Unexpected end of file"));}
             }
         }
-        Ok(Box::new(VarLen{val: val}))
+        Ok(Box::new(VarLen{val: val, size: size}))
     }
     
     // TODO -> Change to stream
