@@ -14,4 +14,13 @@ pub mod tests {
         assert_eq!(stream.read(), Some(&1));
         assert_eq!(stream.read(), Some(&2));
     }
+
+    #[test]
+    fn test_vecstream() {
+        let mut stream = VecByteStream::new(vec![0, 1, 2]);
+
+        assert_eq!(stream.read(), Some(&0));
+        assert_eq!(stream.read(), Some(&1));
+        assert_eq!(stream.read(), Some(&2));
+    }
 }

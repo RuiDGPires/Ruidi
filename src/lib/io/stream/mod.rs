@@ -19,6 +19,11 @@ pub struct FileByteInStream {
     pos: usize, // this should be changed to use iterators
 }
 
+pub struct VecByteStream {
+    contents: Vec<u8>,
+    pos: usize, // this should be changed to use iterators
+}
+
 impl FileByteInStream {
     pub fn new(filename: String) -> Self {
         let mut contents = Vec::new();
@@ -33,7 +38,21 @@ impl FileByteInStream {
     }
 }
 
-impl InStream< u8> for FileByteInStream {
+impl InStream<u8> for FileByteInStream {
+    fn read(&mut self) -> Option<&u8> {
+        let ret = self.contents.iter().skip(self.pos).next();
+        self.pos += 1;
+        ret
+    }
+}
+
+impl VecByteStream {
+    pub fn new(vec: Vec<u8>) -> Self {
+        Self { contents: vec, pos: 0 }
+    }
+}
+
+impl InStream<u8> for VecByteStream {
     fn read(&mut self) -> Option<&u8> {
         let ret = self.contents.iter().skip(self.pos).next();
         self.pos += 1;
