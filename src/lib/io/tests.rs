@@ -30,9 +30,18 @@ mod tests{
 
     #[test]
     fn test_get_u32() {
-        let mut stream = VecByteStream::new(vec![0x12, 0x34, 0x56, 0x78]);
+        let mut stream1 = VecByteStream::new(vec![0x12, 0x34, 0x56, 0x78]);
+        let mut stream2 = VecByteStream::new(vec![0x12, 0x34, 0x56, 0x78, 0x99, 1, 0]);
 
-        assert_eq!(get_u32(&mut stream).unwrap(), 0x12345678);
+        assert_eq!(get_u32(&mut stream1).unwrap(), 0x12345678);
+        assert_eq!(get_u32(&mut stream2).unwrap(), 0x12345678);
+    }
+
+    #[test]
+    fn test_get_u16() {
+        let mut stream = VecByteStream::new(vec![0x12, 0x34]);
+
+        assert_eq!(get_u16(&mut stream).unwrap(), 0x1234);
     }
 
     #[test]

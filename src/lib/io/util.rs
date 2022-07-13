@@ -56,11 +56,24 @@ pub fn check_str<T: stream::InStream<u8>>(stream: &mut T, string: &str) -> bool 
 }
 
 pub fn get_u32<T: stream::InStream<u8>>(stream: &mut T) -> Result<u32, String> {
-    let mut val = 0;
+    let mut val: u32 = 0;
 
     for i in 0..4 {
         match stream.read() {
             Some(v) => {val |= (*v as u32) << (3 - i)*8;}
+            None   => return Err(String::from("Unexpected end of file")),
+        }
+    }
+
+    Ok(val)
+} 
+
+pub fn get_u16<T: stream::InStream<u8>>(stream: &mut T) -> Result<u16, String> {
+    let mut val: u16 = 0;
+
+    for i in 0..2 {
+        match stream.read() {
+            Some(v) => {val |= (*v as u16) << (1 - i)*8;}
             None   => return Err(String::from("Unexpected end of file")),
         }
     }

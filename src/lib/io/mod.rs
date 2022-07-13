@@ -11,6 +11,14 @@ impl stream::Sourceable<u8> for MidiObj {
         }
 
         let header_length: u32 = util::get_u32(&mut stream)?;
+        let format:        u16 = util::get_u16(&mut stream)?;
+        let ntrks:         u16 = util::get_u16(&mut stream)?;
+        let division:      u16 = util::get_u16(&mut stream)?;
+
+        println!("Length: {}", format);
+        println!("Format: {}", format);
+        println!("Number of trakcs: {}", ntrks);
+        println!("Division: {}", division);
 
         Ok(Box::new(Self::new()))
     }
