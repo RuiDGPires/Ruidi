@@ -1,14 +1,15 @@
 use std::io::Read;
+mod tests;
 
 pub trait Sourceable<I> {
-    fn from_file<T: InStream<I>>(stream: T) -> Result<Box<Self>, String>;
+    fn from_stream<T: InStream<I>>(stream: T) -> Result<Box<Self>, String>;
 }
 
 pub trait InStream<T> {
     fn read(&mut self) -> Option<&T>;
 }
 
-trait OutStream<T> {
+pub trait OutStream<T> {
     fn write(&self, val: T) -> ();
     fn flush(&self,) -> ();
 }

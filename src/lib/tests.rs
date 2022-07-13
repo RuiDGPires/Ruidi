@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests{
-    use super::super::{MidiObj, Voice, Note, util::VarLen, stream::FileByteInStream, stream::InStream};
+    use super::super::{MidiObj, Voice, Note, util::VarLen};
 
     #[test]
     fn create_empty_midi_obj() {
