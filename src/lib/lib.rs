@@ -1,11 +1,17 @@
 mod tests;
 pub mod io;
+use std::collections::HashMap;
+
+trait Event {
+}
 
 pub struct Note {
     vel: u32,
     note: u32,
     duration: u32,
 }
+
+impl Event for Note{}
 
 impl Note {
     pub fn new(vel: u32, note: u32, duration: u32) -> Note { 
@@ -17,47 +23,47 @@ impl Note {
     }
 }
 
-pub struct Voice{
-    notes: Vec<Note>
+pub struct Track{
+    notes: HashMap<usize, Note>
 }
 
-impl Voice {
-    pub fn new() -> Voice {
-        Voice { notes: Vec::new() }
+impl Track {
+    pub fn new() -> Track {
+        Track { notes: HashMap::new() }
     }
 
-    pub fn add_note(&mut self, note: Note) -> &mut Voice {
-        self.notes.push(note);
+    pub fn add_note(&mut self, time: usize, note: Note) -> &mut Track {
+        self.notes.insert(time, note);
         self
     }
 }
 
 pub struct MidiObj{
-    pub voices: Vec<Voice>
+    pub tracks: Vec<Track>
 }
 
 impl MidiObj {
     pub fn new() -> MidiObj {
-        MidiObj { voices: Vec::new() }
+        MidiObj { tracks: Vec::new() }
     }
 
     pub fn new_sized(size: usize) -> MidiObj {
         let mut obj = MidiObj::new();
 
         for _ in 0 .. size {
-            obj.add_voice();
+            obj.add_track();
         }
          
        obj 
     }
 
-    pub fn add_voice(&mut self) -> &mut MidiObj {
-        self.voices.push(Voice::new()); 
+    pub fn add_track(&mut self) -> &mut MidiObj {
+        self.tracks.push(Track::new()); 
         self
     }
 
-    pub fn add_note(&mut self, voice: usize, note: Note) -> &mut MidiObj {
-        self.voices[voice].add_note(note);
+    pub fn add_note(&mut self, track: usize, time: usize, note: Note) -> &mut MidiObj {
+        self.tracks[track].add_note(time, note);
         self
     }
 }
