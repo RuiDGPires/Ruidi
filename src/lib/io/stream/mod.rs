@@ -1,8 +1,10 @@
-use std::io::Read;
+use std::io::{Read, BufWriter, Write};
+use std::fs::File;
 mod tests;
 
 pub trait Sourceable<I> {
     fn from_stream<T: InStream<I>>(stream: T) -> Result<Box<Self>, String>;
+    fn to_stream<T: OutStream<I>>(&self, stream: T)  -> Result<(), String>;
 }
 
 pub trait InStream<T> {
@@ -10,8 +12,8 @@ pub trait InStream<T> {
 }
 
 pub trait OutStream<T> {
-    fn write(&self, val: T) -> ();
-    fn flush(&self,) -> ();
+    fn write(&mut self, val: T) -> Result<(), String>;
+    fn flush(&mut self,) -> Result<(), String>;
 }
 
 pub struct FileByteInStream {
@@ -28,7 +30,7 @@ impl FileByteInStream {
     pub fn new(filename: String) -> Self {
         let mut contents = Vec::new();
 
-        std::fs::File::open(filename)
+        File::open(filename)
             .expect("An error occured while opening file")
             .read_to_end(&mut contents)
             .expect("An error occured while reading file")
@@ -60,22 +62,47 @@ impl InStream<u8> for VecByteStream {
     }
 }
 
-struct FileByteOutStream{
+impl OutStream<u8> for VecByteStream {
+    fn write(&mut self, val: u8) -> Result<(), String> {
+        self.contents.push(val);
+        Ok(())
+    }
+
+    fn flush(&mut self) -> Result<(), String> { Ok(()) }
 }
 
-impl OutStream<String> for FileByteOutStream {
-    fn write(&self, val: String) -> (){
-
-    }
-
-    fn flush(&self) -> () {
-
-    }
-
+pub struct FileByteOutStream {
+    file: BufWriter<File>,
 }
 
 impl FileByteOutStream {
-    fn drop(&self) -> () {
-        self.flush();
+    pub fn new(filename: String) -> Self {
+        let file = File::create(filename).expect("Unable to create file");
+        let file = BufWriter::new(file);
+
+        
+        FileByteOutStream{file: file}
+    }
+}
+
+impl OutStream<u8> for FileByteOutStream {
+    fn write(&mut self, val: u8) -> Result<(), String>{
+        match self.file.write(&[val]) {
+            Ok(_)  => Ok(()),
+            Err(e) => Err(e.to_string())
+        }
+    }
+
+    fn flush(&mut self) -> Result<(), String> {
+        match self.file.flush() {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e.to_string())
+        }
+    }
+}
+
+impl Drop for FileByteOutStream {
+    fn drop(&mut self) -> () {
+        let _ = self.flush();
     }
 }

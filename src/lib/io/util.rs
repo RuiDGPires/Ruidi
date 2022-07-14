@@ -24,14 +24,13 @@ impl VarLen {
         Ok(Box::new(VarLen{val: val, size: size}))
     }
     
-    // TODO -> Change to stream
-    pub fn write(&self) -> Vec<u8> {
+    pub fn write<T: stream::OutStream<u8>>(&self, stream: &mut T) -> Result<(), String>{
         let mut bytes: Vec<u8> = Vec::new(); 
         let mut val = self.val.clone();
 
         if val == 0 {
             bytes.push(0x00);
-        }else{
+        } else {
             let mut first = true;
             while val != 0 {
                 let byte: u8 = (val & 0x7F) as u8;
@@ -46,7 +45,12 @@ impl VarLen {
                 val >>= 7;
             }
         }
-        bytes
+
+        for byte in bytes {
+            stream.write(byte)?;
+        }
+
+        Ok(())
     }
 }
 

@@ -38,4 +38,9 @@ impl stream::Sourceable<u8> for MidiObj {
 
         Ok(Box::new(Self::new()))
     }
+
+    fn to_stream<T: stream::OutStream<u8>>(&self, mut stream: T) -> Result<(), String> {
+        
+        Ok(())
+    } 
 }

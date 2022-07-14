@@ -1,11 +1,8 @@
-use midi::{MidiObj, io::stream::FileByteInStream, io::stream::Sourceable};
-use std::path::PathBuf;
+use midi::{io::stream::{FileByteOutStream, OutStream}};
 
 fn main() {
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("test_files/wing2003.mid");
-
-    let stream = FileByteInStream::new(path.into_os_string().into_string().unwrap());
-
-    let _obj: MidiObj = *MidiObj::from_stream(stream).expect("oi");
+    let mut out_stream = FileByteOutStream::new(String::from("/tmp/a.txt"));
+    
+    out_stream.write(0).expect("Unable to write file");
+    out_stream.write(1).expect("Unable to write file");
 }
