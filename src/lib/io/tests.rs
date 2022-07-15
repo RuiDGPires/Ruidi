@@ -29,19 +29,35 @@ mod tests{
     }
 
     #[test]
-    fn test_get_u32() {
+    fn test_read_u32() {
         let mut stream1 = VecByteStream::new(vec![0x12, 0x34, 0x56, 0x78]);
         let mut stream2 = VecByteStream::new(vec![0x12, 0x34, 0x56, 0x78, 0x99, 1, 0]);
 
-        assert_eq!(get_u32(&mut stream1).unwrap(), 0x12345678);
-        assert_eq!(get_u32(&mut stream2).unwrap(), 0x12345678);
+        assert_eq!(*u32::read(&mut stream1).unwrap(), 0x12345678);
+        assert_eq!(*u32::read(&mut stream2).unwrap(), 0x12345678);
     }
 
     #[test]
-    fn test_get_u16() {
+    fn test_write_u32() {
+        let mut stream = VecByteStream::new(Vec::new());
+
+        (0x12345678 as u32).write(&mut stream).unwrap();
+        assert_eq!(*u32::read(&mut stream).unwrap(), 0x12345678);
+    }
+
+    #[test]
+    fn test_write_u16() {
+        let mut stream = VecByteStream::new(Vec::new());
+
+        (0x1234 as u16).write(&mut stream).unwrap();
+        assert_eq!(*u16::read(&mut stream).unwrap(), 0x1234);
+    }
+
+    #[test]
+    fn test_read_u16() {
         let mut stream = VecByteStream::new(vec![0x12, 0x34]);
 
-        assert_eq!(get_u16(&mut stream).unwrap(), 0x1234);
+        assert_eq!(*u16::read(&mut stream).unwrap(), 0x1234);
     }
 
     #[test]

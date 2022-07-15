@@ -19,14 +19,14 @@ pub mod tests {
     fn test_fileoutstream() {
         let path = "/tmp/test";
 
-        std::fs::remove_file(path);
+        let _ = std::fs::remove_file(path);
 
         {
             let mut stream = FileByteOutStream::new(String::from(path));
 
-            stream.write(0);
-            stream.write(1);
-            stream.write(2);
+            let _ = stream.write(0);
+            let _ = stream.write(1);
+            let _ = stream.write(2);
         } // The contents are now flushed
 
         let mut stream = FileByteInStream::new(String::from(path));
@@ -49,9 +49,9 @@ pub mod tests {
     fn test_vecoutstream() {
         let mut stream = VecByteStream::new(Vec::new());
 
-        stream.write(0);
-        stream.write(1);
-        stream.write(2);
+        let _ = stream.write(0);
+        let _ = stream.write(1);
+        let _ = stream.write(2);
         
         assert_eq!(stream.read(), Some(&0));
         assert_eq!(stream.read(), Some(&1));

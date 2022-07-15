@@ -1,12 +1,15 @@
 use super::stream;
 
+//extern crate proc_macro;
+//use proc_macro::TokenStream;
+
 pub struct VarLen {
     pub val: u32,
     pub size: u8,
 }
 
-impl VarLen {
-    pub fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
+impl Streamable<u8> for VarLen {
+    fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
         let mut val: u32 = 0;
         let mut size: u8 = 0;
 
@@ -24,7 +27,7 @@ impl VarLen {
         Ok(Box::new(VarLen{val: val, size: size}))
     }
     
-    pub fn write<T: stream::OutStream<u8>>(&self, stream: &mut T) -> Result<(), String>{
+    fn write<T: stream::OutStream<u8>>(self, stream: &mut T) -> Result<(), String>{
         let mut bytes: Vec<u8> = Vec::new(); 
         let mut val = self.val.clone();
 
@@ -63,28 +66,55 @@ pub fn check_str<T: stream::InStream<u8>>(stream: &mut T, string: &str) -> bool 
     true
 }
 
-pub fn get_u32<T: stream::InStream<u8>>(stream: &mut T) -> Result<u32, String> {
-    let mut val: u32 = 0;
+pub trait Streamable<T> {
+    fn read<S: stream::InStream<T>>(stream: &mut S) -> Result<Box<Self>, String>;
+    fn write<S: stream::OutStream<T>>(self, stream: &mut S) -> Result<(), String>;
+}
 
-    for i in 0..4 {
-        match stream.read() {
-            Some(v) => {val |= (*v as u32) << (3 - i)*8;}
-            None   => return Err(String::from("Unexpected end of file")),
+
+
+impl Streamable<u8> for u32 {
+    fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
+        let mut val: Self = 0;
+
+        for i in 0..4 {
+            match stream.read() {
+                Some(v) => {val |= (*v as Self) << (3 - i)*8;}
+                None   => return Err(String::from("Unexpected end of file")),
+            }
         }
-    }
 
-    Ok(val)
-} 
+        Ok(Box::new(val))
+    } 
 
-pub fn get_u16<T: stream::InStream<u8>>(stream: &mut T) -> Result<u16, String> {
-    let mut val: u16 = 0;
-
-    for i in 0..2 {
-        match stream.read() {
-            Some(v) => {val |= (*v as u16) << (1 - i)*8;}
-            None   => return Err(String::from("Unexpected end of file")),
+    fn write<T: stream::OutStream<u8>>(self, stream: &mut T) -> Result<(), String> {
+        for i in 0..4 {
+            stream.write((self >> (3 - i)*8) as u8 & 0xFF)?;
         }
+        
+        Ok(())
     }
+}
 
-    Ok(val)
-} 
+impl Streamable<u8> for u16 {
+    fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
+        let mut val: Self = 0;
+
+        for i in 0..2 {
+            match stream.read() {
+                Some(v) => {val |= (*v as Self) << (1 - i)*8;}
+                None   => return Err(String::from("Unexpected end of file")),
+            }
+        }
+
+        Ok(Box::new(val))
+    } 
+
+    fn write<T: stream::OutStream<u8>>(self, stream: &mut T) -> Result<(), String> {
+        for i in 0..2 {
+            stream.write((self >> (1 - i)*8) as u8 & 0xFF)?;
+        }
+        
+        Ok(())
+    }
+}
