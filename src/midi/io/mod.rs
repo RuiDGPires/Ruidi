@@ -60,6 +60,23 @@ impl stream::Sourceable<u8> for MidiObj {
             stream.write('k' as u8)?;
             
             util::VarLen::new(0).write(&mut track_stream)?;
+            (0xFF_58 as u16).write(&mut track_stream)?; // Time signature
+            track_stream.write(0x04)?;
+            track_stream.write(0x04)?;
+            track_stream.write(0x02)?;
+            track_stream.write(0x18)?;
+            track_stream.write(0x08)?;
+
+            util::VarLen::new(0).write(&mut track_stream)?;
+            (0xFF_51 as u16).write(&mut track_stream)?; // Tempo
+            track_stream.write(0x05)?;
+            track_stream.write(0x51)?;
+            track_stream.write(0x03)?;
+            track_stream.write(0x07)?;
+            track_stream.write(0xA1)?;
+            track_stream.write(0x20)?;
+
+            util::VarLen::new(0).write(&mut track_stream)?;
             track_stream.write(0xC0)?; // Program change
             track_stream.write(66)?;
 
@@ -67,9 +84,14 @@ impl stream::Sourceable<u8> for MidiObj {
             track_stream.write(0x90)?; // Note on
             track_stream.write(48)?;
             track_stream.write(0x7F)?;
-            util::VarLen::new(100).write(&mut track_stream)?;
+            util::VarLen::new(200).write(&mut track_stream)?;
             track_stream.write(0x80)?; // Note off
             track_stream.write(48)?;
+            track_stream.write(0x7F)?;
+
+            util::VarLen::new(0).write(&mut track_stream)?;
+            track_stream.write(0xFF)?; // EOT
+            track_stream.write(0x2F)?;
             track_stream.write(0)?;
 
             (track_stream.size() as u32).write(&mut stream)?;
