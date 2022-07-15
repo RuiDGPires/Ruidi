@@ -2,7 +2,7 @@ pub mod stream;
 mod tests;
 mod util;
 
-use crate::MidiObj;
+use crate::{MidiObj, Note};
 use util::Streamable;
 
 impl stream::Sourceable<u8> for MidiObj {
@@ -69,25 +69,28 @@ impl stream::Sourceable<u8> for MidiObj {
 
             util::VarLen::new(0).write(&mut track_stream)?;
             (0xFF_51 as u16).write(&mut track_stream)?; // Tempo
-            track_stream.write(0x05)?;
-            track_stream.write(0x51)?;
             track_stream.write(0x03)?;
-            track_stream.write(0x07)?;
-            track_stream.write(0xA1)?;
-            track_stream.write(0x20)?;
+            track_stream.write(0x09)?;
+            track_stream.write(0x10)?;
+            track_stream.write(0xFF)?;
 
             util::VarLen::new(0).write(&mut track_stream)?;
             track_stream.write(0xC0)?; // Program change
             track_stream.write(66)?;
+            
+            for i in 0..track.i {
+                let note : &Note = track.notes.get(&i).unwrap();
 
-            util::VarLen::new(0).write(&mut track_stream)?;
-            track_stream.write(0x90)?; // Note on
-            track_stream.write(48)?;
-            track_stream.write(0x7F)?;
-            util::VarLen::new(200).write(&mut track_stream)?;
-            track_stream.write(0x80)?; // Note off
-            track_stream.write(48)?;
-            track_stream.write(0x7F)?;
+                util::VarLen::new(0).write(&mut track_stream)?;
+                track_stream.write(0x90)?;
+                track_stream.write(note.note)?; // Note on
+                track_stream.write(note.vel)?;
+
+                util::VarLen::new(note.duration).write(&mut track_stream)?;
+                track_stream.write(0x80)?;
+                track_stream.write(note.note)?; // Note off
+                track_stream.write(0x0)?;
+            }
 
             util::VarLen::new(0).write(&mut track_stream)?;
             track_stream.write(0xFF)?; // EOT

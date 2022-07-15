@@ -1,14 +1,12 @@
-use midi::{io::stream::{FileByteInStream, FileByteOutStream, Sourceable}, MidiObj};
-use std::path::PathBuf;
+use midi::{io::stream::{FileByteOutStream, Sourceable}, MidiObj, Note};
 
 fn main() {
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("test_files/wing2003.mid");
     
-    let stream = FileByteInStream::new(path.into_os_string().into_string().unwrap());
-    
-    let mut obj = MidiObj::from_stream(stream).unwrap();
+    let mut obj = MidiObj::new();
     obj.add_track();
+    obj.add_note(0, Note::new(0x7F, 50, 100));
+    obj.add_note(0, Note::pause(100));
+    obj.add_note(0, Note::new(0x7F, 50, 100));
 
     {
         let stream = FileByteOutStream::new(String::from("/tmp/testing.mid"));

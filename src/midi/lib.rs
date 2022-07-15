@@ -6,15 +6,15 @@ trait Event {
 }
 
 pub struct Note {
-    vel: u32,
-    note: u32,
-    duration: u32,
+    pub vel: u8,
+    pub note: u8,
+    pub duration: u32,
 }
 
 impl Event for Note{}
 
 impl Note {
-    pub fn new(vel: u32, note: u32, duration: u32) -> Note { 
+    pub fn new(vel: u8, note: u8, duration: u32) -> Note { 
         Note {vel: vel, note: note, duration: duration} 
     }
 
@@ -24,17 +24,23 @@ impl Note {
 }
 
 pub struct Track{
-    notes: HashMap<usize, Note>
+    notes: HashMap<usize, Note>,
+    i: usize,
 }
 
 impl Track {
     pub fn new() -> Track {
-        Track { notes: HashMap::new() }
+        Track { notes: HashMap::new(), i: 0 }
     }
 
-    pub fn add_note(&mut self, time: usize, note: Note) -> &mut Track {
-        self.notes.insert(time, note);
+    pub fn add_note(&mut self, note: Note) -> &mut Track {
+        self.notes.insert(self.i, note);
+        self.i += 1;
         self
+    }
+
+    pub fn get_notes(&self) -> &HashMap<usize, Note> {
+        &self.notes
     }
 }
 
@@ -62,8 +68,8 @@ impl MidiObj {
         self
     }
 
-    pub fn add_note(&mut self, track: usize, time: usize, note: Note) -> &mut MidiObj {
-        self.tracks[track].add_note(time, note);
+    pub fn add_note(&mut self, track: usize, note: Note) -> &mut MidiObj {
+        self.tracks[track].add_note(note);
         self
     }
 }
