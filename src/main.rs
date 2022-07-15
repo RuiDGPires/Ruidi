@@ -7,10 +7,11 @@ fn main() {
     
     let stream = FileByteInStream::new(path.into_os_string().into_string().unwrap());
     
-    let obj = MidiObj::from_stream(stream).unwrap();
-    
+    let mut obj = MidiObj::from_stream(stream).unwrap();
+    obj.add_track();
+
     {
-        let stream = FileByteOutStream::new(String::from("/tmp/testing"));
+        let stream = FileByteOutStream::new(String::from("/tmp/testing.mid"));
         obj.to_stream(stream).unwrap();
     }
 }

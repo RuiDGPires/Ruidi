@@ -73,20 +73,34 @@ mod tests{
 
     #[test]
     fn varlen_write() {
-    // TODO
-    //    let bytes1 = &[0x00];
-    //    assert!(&VarLen::read(bytes1).write()[..] == bytes1);
-    //    let bytes2 = &[0x40];
-    //    assert!(&VarLen::read(bytes2).write()[..] == bytes2);
-    //    let bytes3 = &[0x7F];
-    //    assert!(&VarLen::read(bytes3).write()[..] == bytes3);
-    //    let bytes4 = &[0x81, 0x00];
-    //    assert!(&VarLen::read(bytes4).write()[..] == bytes4);
-    //    let bytes5 = &[0xC0, 0x00];
-    //    assert!(&VarLen::read(bytes5).write()[..] == bytes5);
-    //    let bytes6 = &[0xFF, 0x7F];
-    //    assert!(&VarLen::read(bytes6).write()[..] == bytes6);
-    //    let bytes7 = &[0x81, 0x80, 0x00];
-    //    assert!(&VarLen::read(bytes7).write()[..] == bytes7);
+        let mut stream = VecByteStream::new(Vec::new());
+
+        (*VarLen::read(&mut VecByteStream::new(vec![0x00])).unwrap()).write(&mut stream).unwrap();
+        assert!(stream.to_vec() == vec![0x00]);
+
+
+        let mut stream = VecByteStream::new(Vec::new());
+        (*VarLen::read(&mut VecByteStream::new(vec![0x40])).unwrap()).write(&mut stream).unwrap();
+        assert!(stream.to_vec() == vec![0x40]);
+
+        let mut stream = VecByteStream::new(Vec::new());
+        (*VarLen::read(&mut VecByteStream::new(vec![0x7F])).unwrap()).write(&mut stream).unwrap();
+        assert!(stream.to_vec() == vec![0x7F]);
+
+        let mut stream = VecByteStream::new(Vec::new());
+        (*VarLen::read(&mut VecByteStream::new(vec![0x81, 0x00])).unwrap()).write(&mut stream).unwrap();
+        assert!(stream.to_vec() == vec![0x81, 0x00]);
+
+        let mut stream = VecByteStream::new(Vec::new());
+        (*VarLen::read(&mut VecByteStream::new(vec![0xC0, 0x00])).unwrap()).write(&mut stream).unwrap();
+        assert!(stream.to_vec() == vec![0xC0, 0x00]);
+
+        let mut stream = VecByteStream::new(Vec::new());
+        (*VarLen::read(&mut VecByteStream::new(vec![0xFF, 0x7F])).unwrap()).write(&mut stream).unwrap();
+        assert!(stream.to_vec() == vec![0xFF, 0x7F]);
+
+        let mut stream = VecByteStream::new(Vec::new());
+        (*VarLen::read(&mut VecByteStream::new(vec![0x81, 0x80, 0x00])).unwrap()).write(&mut stream).unwrap();
+        assert!(stream.to_vec() == vec![0x81, 0x80, 0x00]);
     }
 }

@@ -52,6 +52,27 @@ impl VecByteStream {
     pub fn new(vec: Vec<u8>) -> Self {
         Self { contents: vec, pos: 0 }
     }
+
+    pub fn to_vec(self) -> Vec<u8> {
+        self.contents
+    }
+
+    pub fn into_filestream<T: OutStream<u8>>(self, stream: &mut T) -> Result<(), String>{
+        for item in self.contents {
+            stream.write(item)?;
+        }
+
+        stream.flush()
+    }
+
+    pub fn size(&self) -> usize {
+        self.contents.len()
+    }
+
+    pub fn clear(&mut self) -> () {
+        self.contents.clear();
+        self.pos = 0;
+    }
 }
 
 impl InStream<u8> for VecByteStream {

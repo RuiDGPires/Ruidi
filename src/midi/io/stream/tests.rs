@@ -38,11 +38,14 @@ pub mod tests {
 
     #[test]
     fn test_vecinstream() {
-        let mut stream = VecByteStream::new(vec![0, 1, 2]);
+        let mut stream = VecByteStream::new(vec![0, 1, 2, 3]);
 
         assert_eq!(stream.read(), Some(&0));
         assert_eq!(stream.read(), Some(&1));
         assert_eq!(stream.read(), Some(&2));
+
+        stream.clear();
+        assert_eq!(stream.read(), None);
     }
 
     #[test]

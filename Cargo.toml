@@ -5,7 +5,7 @@ edition = "2018"
 
 [lib]
 name = "midi"
-path = "src/lib/lib.rs"
+path = "src/midi/lib.rs"
 
 [[bin]]
 name = "main"

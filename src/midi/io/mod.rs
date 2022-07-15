@@ -41,6 +41,7 @@ impl stream::Sourceable<u8> for MidiObj {
     }
 
     fn to_stream<T: stream::OutStream<u8>>(&self, mut stream: T) -> Result<(), String> {
+        use stream::OutStream;
         stream.write('M' as u8)?;
         stream.write('T' as u8)?;
         stream.write('h' as u8)?;
@@ -50,6 +51,30 @@ impl stream::Sourceable<u8> for MidiObj {
         (0 as u16).write(&mut stream)?;
         (self.tracks.len() as u16).write(&mut stream)?;
         (96 as u16).write(&mut stream)?;
+
+        for track in &self.tracks {
+            let mut track_stream = stream::VecByteStream::new(Vec::new());
+            stream.write('M' as u8)?;
+            stream.write('T' as u8)?;
+            stream.write('r' as u8)?;
+            stream.write('k' as u8)?;
+            
+            util::VarLen::new(0).write(&mut track_stream)?;
+            track_stream.write(0xC0)?; // Program change
+            track_stream.write(66)?;
+
+            util::VarLen::new(0).write(&mut track_stream)?;
+            track_stream.write(0x90)?; // Note on
+            track_stream.write(48)?;
+            track_stream.write(0x7F)?;
+            util::VarLen::new(100).write(&mut track_stream)?;
+            track_stream.write(0x80)?; // Note off
+            track_stream.write(48)?;
+            track_stream.write(0)?;
+
+            (track_stream.size() as u32).write(&mut stream)?;
+            track_stream.into_filestream(&mut stream)?;
+        }
          
         Ok(())
     } 

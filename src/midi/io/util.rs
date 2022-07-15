@@ -57,6 +57,12 @@ impl Streamable<u8> for VarLen {
     }
 }
 
+impl VarLen {
+    pub fn new(val: u32) -> Self {
+        VarLen{val: val, size: 0}
+    }
+}
+
 pub fn check_str<T: stream::InStream<u8>>(stream: &mut T, string: &str) -> bool {
     for c in string.chars() {
         if stream.read() != Some(&(c as u8)) {
