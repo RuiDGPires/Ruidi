@@ -1,6 +1,9 @@
 mod tests;
 pub mod io;
+pub mod instruments;
+
 use std::collections::HashMap;
+use instruments::Instrument;
 
 trait Event {
 }
@@ -45,12 +48,15 @@ impl Track {
 }
 
 pub struct MidiObj{
-    pub tracks: Vec<Track>
+    pub tracks: Vec<Track>,
+    pub tempo: u32,
+    //pub signature: u32,
+    pub instrument: Instrument,
 }
 
 impl MidiObj {
     pub fn new() -> MidiObj {
-        MidiObj { tracks: Vec::new() }
+        MidiObj { tracks: Vec::new(), tempo: 120, instrument: Instrument::ACOUSTICGRANDPIANO }
     }
 
     pub fn new_sized(size: usize) -> MidiObj {
@@ -70,6 +76,16 @@ impl MidiObj {
 
     pub fn add_note(&mut self, track: usize, note: Note) -> &mut MidiObj {
         self.tracks[track].add_note(note);
+        self
+    }
+
+    pub fn set_tempo(&mut self, tempo: u32) -> &mut MidiObj {
+        self.tempo = tempo;
+        self
+    }
+
+    pub fn set_instrument(&mut self, intrument: Instrument) -> &mut MidiObj{
+        self.instrument = intrument;
         self
     }
 }

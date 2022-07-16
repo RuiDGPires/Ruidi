@@ -26,9 +26,9 @@ mod tests{
     fn add_note() {
         let mut obj: MidiObj = MidiObj::new_sized(1); 
         assert!(!obj.tracks.is_empty());
-        obj.add_note(0, 0, Note::new(10, 15, 20));
-        obj.add_note(0, 1, Note::pause(2));
-        obj.add_note(0, 2, Note::new(2, 2, 3));
+        obj.add_note(0, Note::new(10, 15, 20));
+        obj.add_note(0, Note::pause(2));
+        obj.add_note(0, Note::new(2, 2, 3));
         
         assert!(obj.tracks[0].notes.get(&0).unwrap().vel == 10);
         assert!(obj.tracks[0].notes.get(&0).unwrap().note == 15);

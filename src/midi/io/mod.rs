@@ -32,7 +32,7 @@ impl stream::Sourceable<u8> for MidiObj {
                 // Parse events
                 let varlen: util::VarLen = *util::VarLen::read(&mut stream)?;
                 i += varlen.size as u32;
-                let delta_time = varlen.val;
+                let _delta_time = varlen.val;
 
             }
         }
@@ -70,13 +70,16 @@ impl stream::Sourceable<u8> for MidiObj {
             util::VarLen::new(0).write(&mut track_stream)?;
             (0xFF_51 as u16).write(&mut track_stream)?; // Tempo
             track_stream.write(0x03)?;
-            track_stream.write(0x09)?;
-            track_stream.write(0x10)?;
-            track_stream.write(0xFF)?;
+
+            let tempo: u32 = 60_000_000 / self.tempo;
+
+            for i in 0..3 {
+                track_stream.write((tempo >> (2 - i)*8) as u8)?;
+            }
 
             util::VarLen::new(0).write(&mut track_stream)?;
             track_stream.write(0xC0)?; // Program change
-            track_stream.write(66)?;
+            track_stream.write(self.instrument as u8)?;
             
             for i in 0..track.i {
                 let note : &Note = track.notes.get(&i).unwrap();
