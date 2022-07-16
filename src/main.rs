@@ -8,7 +8,7 @@ fn main() {
 
     //obj.set_timesignature(0, 4, 4);
     obj.set_tempo(120)
-        .set_instrument(Instrument::TENORSAX)
+        .set_instrument(Instrument::TenorSax)
         .add_note(0, Note::new(0x7F, 50, 96))
         .add_note(0, Note::new(0x7F, 52, 96))
         .add_note(0, Note::new(0x7F, 52, 96))

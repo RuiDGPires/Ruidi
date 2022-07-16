@@ -56,7 +56,7 @@ pub struct MidiObj{
 
 impl MidiObj {
     pub fn new() -> MidiObj {
-        MidiObj { tracks: Vec::new(), tempo: 120, instrument: Instrument::ACOUSTICGRANDPIANO }
+        MidiObj { tracks: Vec::new(), tempo: 120, instrument: Instrument::AcousticGrandPiano }
     }
 
     pub fn new_sized(size: usize) -> MidiObj {
