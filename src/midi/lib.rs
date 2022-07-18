@@ -29,11 +29,12 @@ impl Note {
 pub struct Track{
     notes: HashMap<usize, Note>,
     i: usize,
+    pub instrument: Instrument,
 }
 
 impl Track {
     pub fn new() -> Track {
-        Track { notes: HashMap::new(), i: 0 }
+        Track { notes: HashMap::new(), i: 0, instrument: Instrument::AcousticGrandPiano}
     }
 
     pub fn add_note(&mut self, note: Note) -> &mut Track {
@@ -45,47 +46,31 @@ impl Track {
     pub fn get_notes(&self) -> &HashMap<usize, Note> {
         &self.notes
     }
+
+    pub fn set_instrument(&mut self, intrument: Instrument) -> &mut Track{
+        self.instrument = intrument;
+        self
+    }
 }
 
 pub struct MidiObj{
     pub tracks: Vec<Track>,
     pub tempo: u32,
     //pub signature: u32,
-    pub instrument: Instrument,
 }
 
 impl MidiObj {
     pub fn new() -> MidiObj {
-        MidiObj { tracks: Vec::new(), tempo: 120, instrument: Instrument::AcousticGrandPiano }
+        MidiObj { tracks: Vec::new(), tempo: 120 }
     }
 
-    pub fn new_sized(size: usize) -> MidiObj {
-        let mut obj = MidiObj::new();
-
-        for _ in 0 .. size {
-            obj.add_track();
-        }
-         
-       obj 
-    }
-
-    pub fn add_track(&mut self) -> &mut MidiObj {
-        self.tracks.push(Track::new()); 
-        self
-    }
-
-    pub fn add_note(&mut self, track: usize, note: Note) -> &mut MidiObj {
-        self.tracks[track].add_note(note);
+    pub fn add_track(&mut self, track: Track) -> &mut MidiObj {
+        self.tracks.push(track); 
         self
     }
 
     pub fn set_tempo(&mut self, tempo: u32) -> &mut MidiObj {
         self.tempo = tempo;
-        self
-    }
-
-    pub fn set_instrument(&mut self, intrument: Instrument) -> &mut MidiObj{
-        self.instrument = intrument;
         self
     }
 }

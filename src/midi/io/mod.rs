@@ -79,7 +79,7 @@ impl stream::Sourceable<u8> for MidiObj {
 
             util::VarLen::new(0).write(&mut track_stream)?;
             track_stream.write(0xC0)?; // Program change
-            track_stream.write(self.instrument as u8)?;
+            track_stream.write(track.instrument as u8)?;
             
             for i in 0..track.i {
                 let note : &Note = track.notes.get(&i).unwrap();

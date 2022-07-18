@@ -1,8 +1,5 @@
 use super::stream;
 
-//extern crate proc_macro;
-//use proc_macro::TokenStream;
-
 pub struct VarLen {
     pub val: u32,
     pub size: u8,
