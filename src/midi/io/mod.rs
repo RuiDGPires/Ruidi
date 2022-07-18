@@ -48,49 +48,71 @@ impl stream::Sourceable<u8> for MidiObj {
         stream.write('d' as u8)?;
 
         (6 as u32).write(&mut stream)?;
-        (0 as u16).write(&mut stream)?;
-        (self.tracks.len() as u16).write(&mut stream)?;
+        (1 as u16).write(&mut stream)?; // Format
+        (self.tracks.len() as u16 + 1).write(&mut stream)?;
         (96 as u16).write(&mut stream)?;
 
-        for track in &self.tracks {
+        //----
+        // Header stuff
+        {
+        let mut track_stream = stream::VecByteStream::new(Vec::new());
+        stream.write('M' as u8)?;
+        stream.write('T' as u8)?;
+        stream.write('r' as u8)?;
+        stream.write('k' as u8)?;
+
+        util::VarLen::new(0).write(&mut track_stream)?;
+        (0xFF_58 as u16).write(&mut track_stream)?; // Time signature
+        track_stream.write(0x04)?;
+        track_stream.write(0x04)?;
+        track_stream.write(0x02)?;
+        track_stream.write(0x18)?;
+        track_stream.write(0x08)?;
+
+
+        util::VarLen::new(0).write(&mut track_stream)?;
+        (0xFF_51 as u16).write(&mut track_stream)?; // Tempo
+        track_stream.write(0x03)?;
+
+        let tempo: u32 = 60_000_000 / self.tempo;
+
+        for i in 0..3 {
+            track_stream.write((tempo >> (2 - i)*8) as u8)?;
+        }
+
+        util::VarLen::new(0).write(&mut track_stream)?;
+        track_stream.write(0xFF)?; // EOT
+        track_stream.write(0x2F)?;
+        track_stream.write(0)?;
+
+        (track_stream.size() as u32).write(&mut stream)?; // Track size
+        track_stream.into_filestream(&mut stream)?;
+        }
+        //----
+
+        for (i, track) in self.tracks.iter().enumerate() {
+            println!("Writing track {}", i);
             let mut track_stream = stream::VecByteStream::new(Vec::new());
+            let channel = i as u8;
             stream.write('M' as u8)?;
             stream.write('T' as u8)?;
             stream.write('r' as u8)?;
             stream.write('k' as u8)?;
-            
-            util::VarLen::new(0).write(&mut track_stream)?;
-            (0xFF_58 as u16).write(&mut track_stream)?; // Time signature
-            track_stream.write(0x04)?;
-            track_stream.write(0x04)?;
-            track_stream.write(0x02)?;
-            track_stream.write(0x18)?;
-            track_stream.write(0x08)?;
 
             util::VarLen::new(0).write(&mut track_stream)?;
-            (0xFF_51 as u16).write(&mut track_stream)?; // Tempo
-            track_stream.write(0x03)?;
-
-            let tempo: u32 = 60_000_000 / self.tempo;
-
-            for i in 0..3 {
-                track_stream.write((tempo >> (2 - i)*8) as u8)?;
-            }
-
-            util::VarLen::new(0).write(&mut track_stream)?;
-            track_stream.write(0xC0)?; // Program change
+            track_stream.write(0xC0 | channel)?; // Program change
             track_stream.write(track.instrument as u8)?;
             
             for i in 0..track.i {
                 let note : &Note = track.notes.get(&i).unwrap();
 
                 util::VarLen::new(0).write(&mut track_stream)?;
-                track_stream.write(0x90)?;
+                track_stream.write(0x90 | channel)?;
                 track_stream.write(note.note)?; // Note on
                 track_stream.write(note.vel)?;
 
                 util::VarLen::new(note.duration).write(&mut track_stream)?;
-                track_stream.write(0x80)?;
+                track_stream.write(0x80 | channel)?;
                 track_stream.write(note.note)?; // Note off
                 track_stream.write(0x0)?;
             }

@@ -1,6 +1,7 @@
 mod tests;
 pub mod io;
 pub mod instruments;
+pub mod pitch;
 
 use std::collections::HashMap;
 use instruments::Instrument;
@@ -17,6 +18,12 @@ pub struct Note {
 impl Event for Note{}
 
 impl Note {
+    // Common note durations
+    pub const QUARTER: u32 = 96;
+    pub const HALF: u32 = Self::QUARTER*2;
+    pub const WHOLE: u32 = Self::HALF*2;
+    pub const EIGHT: u32 = Self::QUARTER / 2;
+
     pub fn new(vel: u8, note: u8, duration: u32) -> Note { 
         Note {vel: vel, note: note, duration: duration} 
     }
