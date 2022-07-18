@@ -5,6 +5,17 @@ mod util;
 use crate::{MidiObj, Note};
 use util::Streamable;
 
+fn ts_conv(val: u8) -> Result<u8, String>{
+    match val {
+        16 => Ok(3),
+        8 => Ok(3),
+        4 => Ok(2),
+        2 => Ok(1),
+        1 => Ok(0),
+        _ => Err(String::from("Invalid Time Signature"))
+    } 
+}
+
 impl stream::Sourceable<u8> for MidiObj {
     fn from_stream<T: stream::InStream<u8>>(mut stream: T) -> Result<Box<Self>, String> {
         if !util::check_str(&mut stream, "MThd") {
@@ -62,10 +73,11 @@ impl stream::Sourceable<u8> for MidiObj {
         stream.write('k' as u8)?;
 
         util::VarLen::new(0).write(&mut track_stream)?;
-        (0xFF_58 as u16).write(&mut track_stream)?; // Time signature
+        track_stream.write(0xFF)?; // Time signature
+        track_stream.write(0x58)?;
         track_stream.write(0x04)?;
-        track_stream.write(0x04)?;
-        track_stream.write(0x02)?;
+        track_stream.write(self.time_signature.0)?;
+        track_stream.write(ts_conv(self.time_signature.1)?)?;
         track_stream.write(0x18)?;
         track_stream.write(0x08)?;
 
