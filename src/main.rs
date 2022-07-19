@@ -1,6 +1,7 @@
 use midi::{io::stream::{FileByteOutStream, Sourceable}, MidiObj, Track, Note};
 use midi::instruments::Instrument;
 use midi::pitch::*;
+use midi::dynamics;
 
 fn main() {
     
@@ -12,8 +13,9 @@ fn main() {
 
     track1.set_instrument(Instrument::TenorSax);
     for i in 0..8 {
-        track1.add_note(Note::new(0x7F, octave(C + i, 4), Note::QUARTER));
+        track1.add_note(Note::new(dynamics::MEZZO_FORTE, octave(C + i, 4), Note::QUARTER));
     }
+    track1.add_note(Note::new(dynamics::PIANO, octave(C, 4), Note::doted(Note::QUARTER)));
     obj.add_track(track1);
 
 
@@ -21,7 +23,7 @@ fn main() {
 
     track2.set_instrument(Instrument::AltoSax);
     for i in 0..16 {
-        track2.add_note(Note::new(0x7F, octave(C + i, 4), Note::EIGHT));
+        track2.add_note(Note::new(0x7F, octave(C + i, 4), Note::EIGHTH));
     }
     obj.add_track(track2);
 
