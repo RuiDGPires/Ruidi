@@ -1,8 +1,9 @@
 pub mod stream;
 mod tests;
 mod util;
+mod events;
 
-use crate::{MidiObj, Note};
+use crate::{MidiObj, Note, dynamics};
 use util::Streamable;
 
 fn ts_conv(val: u8) -> Result<u8, String>{
@@ -81,7 +82,6 @@ impl stream::Sourceable<u8> for MidiObj {
         track_stream.write(0x18)?;
         track_stream.write(0x08)?;
 
-
         util::VarLen::new(0).write(&mut track_stream)?;
         (0xFF_51 as u16).write(&mut track_stream)?; // Tempo
         track_stream.write(0x03)?;
@@ -91,6 +91,15 @@ impl stream::Sourceable<u8> for MidiObj {
         for i in 0..3 {
             track_stream.write((tempo >> (2 - i)*8) as u8)?;
         }
+
+        util::VarLen::new(4*96).write(&mut track_stream)?;
+        track_stream.write(0xFF)?; // Time signature
+        track_stream.write(0x58)?;
+        track_stream.write(0x04)?;
+        track_stream.write(3)?;
+        track_stream.write(ts_conv(self.time_signature.1)?)?;
+        track_stream.write(0x18)?;
+        track_stream.write(0x08)?;
 
         util::VarLen::new(0).write(&mut track_stream)?;
         track_stream.write(0xFF)?; // EOT
@@ -117,16 +126,20 @@ impl stream::Sourceable<u8> for MidiObj {
             
             for i in 0..track.i {
                 let note : &Note = track.notes.get(&i).unwrap();
+                let mut tick = 0;
 
-                util::VarLen::new(0).write(&mut track_stream)?;
-                track_stream.write(0x90 | channel)?;
-                track_stream.write(note.note)?; // Note on
-                track_stream.write(note.vel)?;
+                let mut velocity = note.vel;
+                if note.vel == dynamics::AUTO {
+                    velocity = track.dynamics;
+                }
+                
+                for pitch in &note.notes {
+                    events::NoteOn::new(0, velocity, *pitch, channel).on_tick(&mut tick).write(&mut track_stream)?;
+                }
 
-                util::VarLen::new(note.duration).write(&mut track_stream)?;
-                track_stream.write(0x80 | channel)?;
-                track_stream.write(note.note)?; // Note off
-                track_stream.write(0x0)?;
+                for pitch in &note.notes {
+                    events::NoteOff::new(note.duration, *pitch, channel).on_tick(&mut tick).write(&mut track_stream)?;
+                }
             }
 
             util::VarLen::new(0).write(&mut track_stream)?;

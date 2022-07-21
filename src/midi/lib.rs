@@ -4,7 +4,7 @@ pub mod instruments;
 pub mod pitch;
 
 pub mod dynamics {
-    pub const AUTO:               u8 = 0xFF;
+    pub const AUTO:               u8 = 0xFF; // TODO
 
     pub const FORTISSIMO:         u8 = 101;
     pub const FORTE:              u8 = 88;
@@ -14,46 +14,50 @@ pub mod dynamics {
     pub const PIANISSIMO:         u8 = 36;
 }
 
-use std::collections::HashMap;
-use instruments::Instrument;
-
-trait Event {
-}
-
-pub struct Note {
-    pub vel: u8,
-    pub note: u8,
-    pub duration: u32,
-}
-
-impl Event for Note{}
-
-impl Note {
+pub mod durations {
     // Common note durations
     // American names
     pub const QUARTER:   u32 = 96;
-    pub const HALF:      u32 = Self::QUARTER*2;
-    pub const WHOLE:     u32 = Self::HALF*2;
-    pub const EIGHTH:    u32 = Self::QUARTER / 2;
-    pub const SIXTEENTH: u32 = Self::QUARTER / 2;
+    pub const HALF:      u32 = QUARTER*2;
+    pub const WHOLE:     u32 = HALF*2;
+    pub const EIGHTH:    u32 = QUARTER / 2;
+    pub const SIXTEENTH: u32 = QUARTER / 2;
 
     // British names
-    pub const SEMIBREVE:     u32 = Self::WHOLE;
-    pub const CROTCHET:      u32 = Self::QUARTER;
-    pub const QUAVER:        u32 = Self::EIGHTH;
-    pub const SEMI_QUAVER:   u32 = Self::SIXTEENTH;
-    pub const MINIM:         u32 = Self::HALF;
+    pub const SEMIBREVE:     u32 = WHOLE;
+    pub const CROTCHET:      u32 = QUARTER;
+    pub const QUAVER:        u32 = EIGHTH;
+    pub const SEMI_QUAVER:   u32 = SIXTEENTH;
+    pub const MINIM:         u32 = HALF;
+}
 
-    pub fn doted(val: u32) -> u32 {
-        (val as f32 * 1.5) as u32
-    }
+use std::collections::HashMap;
+use instruments::Instrument;
 
-    pub fn new(vel: u8, note: u8, duration: u32) -> Note { 
-        Note {vel: vel, note: note, duration: duration} 
+pub struct Note {
+    pub vel: u8,
+    pub notes: Vec<u8>,
+    pub duration: u32,
+}
+
+#[macro_export]
+macro_rules! note {
+    ($vel:expr, $duration:expr, $note:expr) => (
+        Note::new($vel, $duration, vec![$note])   
+        );
+
+    ($vel:expr, $duration:expr, $note:expr, $($n:expr),+) => (
+        Note::new($vel, $duration, vec![$note, $($n),+])
+    )
+}
+
+impl Note {
+    pub fn new(vel: u8, duration: u32, notes: Vec<u8>) -> Note { 
+        Note {vel: vel, notes: notes, duration: duration} 
     }
 
     pub fn pause(duration: u32) -> Note {
-        Note {vel: 0, note: 0, duration: duration}
+        Note {vel: 0, notes: Vec::new(), duration: duration}
     }
 }
 
@@ -61,11 +65,14 @@ pub struct Track{
     notes: HashMap<usize, Note>,
     i: usize,
     pub instrument: Instrument,
+    pub dynamics: u8,
+
+    pub tick: u32,
 }
 
 impl Track {
     pub fn new() -> Track {
-        Track { notes: HashMap::new(), i: 0, instrument: Instrument::AcousticGrandPiano}
+        Track { notes: HashMap::new(), i: 0, instrument: Instrument::AcousticGrandPiano, dynamics: dynamics::MEZZO_FORTE, tick: 0}
     }
 
     pub fn add_note(&mut self, note: Note) -> &mut Track {
@@ -80,6 +87,11 @@ impl Track {
 
     pub fn set_instrument(&mut self, intrument: Instrument) -> &mut Track{
         self.instrument = intrument;
+        self
+    }
+
+    pub fn set_dynamics(&mut self, dynamics: u8) -> &mut Track {
+        self.dynamics = dynamics;    
         self
     }
 }
