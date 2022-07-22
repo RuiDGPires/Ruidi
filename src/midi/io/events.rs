@@ -25,7 +25,14 @@ pub struct NoteOff {
     previous: u32,
 }
 
-pub struct Tempo {}
+#[derive(Copy, Clone)]
+pub struct Tempo {
+    pub time: u32,
+    pub bpm: u32,
+
+    previous: u32
+}
+
 pub struct TimeSignature {}
 pub struct KeySignature {}
 
@@ -45,6 +52,19 @@ impl NoteOn {
 impl NoteOff {
     pub fn new(time: u32, note: u8, channel: u8) -> Self {
         Self{time: time, note: note, channel: channel, previous: 0}
+    }
+
+    pub fn on_tick(&mut self, time: &mut u32) -> &Self {
+        self.previous = *time;
+        *time = self.time;
+
+        self
+    }
+}
+
+impl Tempo {
+    pub fn new(time: u32, bpm: u32) -> Self{
+        Self{time: time, bpm: bpm, previous: 0}
     }
 
     pub fn on_tick(&mut self, time: &mut u32) -> &Self {
@@ -93,5 +113,36 @@ impl Streamable<u8> for NoteOff{
         let _:     u8 = *stream.read().expect("Unexpected EOF");
           
         Ok(Box::new(Self::new(time, note, channel)))
+    }
+}
+
+impl Streamable<u8> for Tempo {
+    fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
+        // TODO : Missing running status
+        let time:      u32 = (*VarLen::read(stream)?).val;
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let mut tempo: u32 = *stream.read().expect("Unexpected EOF") as u32;
+        tempo = (tempo << 8) | *stream.read().expect("Unexpected EOF") as u32;
+        tempo = (tempo << 8) | *stream.read().expect("Unexpected EOF") as u32;
+          
+        let bpm : u32 = 60_000_000 / tempo;
+
+        Ok(Box::new(Self::new(time, bpm)))
+    }
+
+    fn write<T: stream::OutStream<u8>>(self, stream: &mut T) -> Result<(), String> {
+        VarLen::new(self.time - self.previous).write(stream)?;
+
+        (0xFF_51 as u16).write(stream)?; // Tempo
+        stream.write(0x03)?;
+
+        let tempo: u32 = 60_000_000 / self.bpm;
+
+        for i in 0..3 {
+            stream.write((tempo >> (2 - i)*8) as u8)?;
+        }
+        Ok(()) 
     }
 }

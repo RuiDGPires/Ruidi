@@ -46,6 +46,5 @@ fn main() {
     }
     obj.add_track(track2);
 
-    let stream = FileByteOutStream::new(output_file);
-    obj.to_stream(stream).unwrap();
+    obj.to_stream(FileByteOutStream::new(output_file)).unwrap();
 }

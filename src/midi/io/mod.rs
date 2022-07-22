@@ -82,15 +82,7 @@ impl stream::Sourceable<u8> for MidiObj {
         track_stream.write(0x18)?;
         track_stream.write(0x08)?;
 
-        util::VarLen::new(0).write(&mut track_stream)?;
-        (0xFF_51 as u16).write(&mut track_stream)?; // Tempo
-        track_stream.write(0x03)?;
-
-        let tempo: u32 = 60_000_000 / self.tempo;
-
-        for i in 0..3 {
-            track_stream.write((tempo >> (2 - i)*8) as u8)?;
-        }
+        events::Tempo::new(0, self.tempo).on_tick(&mut 0).write(&mut track_stream)?; 
 
         util::VarLen::new(4*96).write(&mut track_stream)?;
         track_stream.write(0xFF)?; // Time signature
