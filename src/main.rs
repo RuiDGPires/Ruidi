@@ -22,7 +22,7 @@ fn main() {
 
     obj.set_tempo(120)
         .set_time_signature((4, 4))
-        .set_key_signature((7, false))
+        .set_key_signature((0, false))
         ;
 
     let mut track1 = Track::new();
