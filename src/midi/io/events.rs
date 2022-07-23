@@ -33,8 +33,23 @@ pub struct Tempo {
     previous: u32
 }
 
-pub struct TimeSignature {}
-pub struct KeySignature {}
+#[derive(Copy, Clone)]
+pub struct TimeSignature {
+    pub time: u32,
+    pub numerator: u8,
+    pub denominator: u8,
+
+    previous: u32
+}
+
+#[derive(Copy, Clone)]
+pub struct KeySignature {
+    pub time: u32,
+    pub accidentals: u8,
+    pub minor: bool,
+
+    previous: u32,
+}
 
 impl NoteOn {
     pub fn new(time: u32, vel: u8, note: u8, channel: u8) -> Self {
@@ -65,6 +80,54 @@ impl NoteOff {
 impl Tempo {
     pub fn new(time: u32, bpm: u32) -> Self{
         Self{time: time, bpm: bpm, previous: 0}
+    }
+
+    pub fn on_tick(&mut self, time: &mut u32) -> &Self {
+        self.previous = *time;
+        *time = self.time;
+
+        self
+    }
+}
+
+impl TimeSignature {
+    pub fn new(time: u32, numerator: u8, denominator: u8) -> Self{
+        Self{time: time, numerator: numerator, denominator: denominator, previous: 0}
+    }
+
+    pub fn on_tick(&mut self, time: &mut u32) -> &Self {
+        self.previous = *time;
+        *time = self.time;
+
+        self
+    }
+
+    fn inv(val: u8) -> Result<u8, String>{
+        match val {
+            16 => Ok(4),
+            8 => Ok(3),
+            4 => Ok(2),
+            2 => Ok(1),
+            1 => Ok(0),
+            _ => Err(String::from("Invalid Time Signature"))
+        } 
+    }
+
+    fn pow(val: u8) -> Result<u8, String>{
+        match val {
+            4 => Ok(16),
+            3 => Ok(8),
+            2 => Ok(4),
+            1 => Ok(2),
+            0 => Ok(1),
+            _ => Err(String::from("Invalid Time Signature"))
+        } 
+    }
+}
+
+impl KeySignature {
+    pub fn new(time: u32, accidentals: u8, minor: bool) -> Self{
+        Self{time: time, accidentals: accidentals, minor: minor, previous: 0}
     }
 
     pub fn on_tick(&mut self, time: &mut u32) -> &Self {
@@ -143,6 +206,62 @@ impl Streamable<u8> for Tempo {
         for i in 0..3 {
             stream.write((tempo >> (2 - i)*8) as u8)?;
         }
+        Ok(()) 
+    }
+}
+
+impl Streamable<u8> for TimeSignature {
+    fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
+        // TODO : Missing running status
+        let time:      u32 = (*VarLen::read(stream)?).val;
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let num:       u8 = *stream.read().expect("Unexpected EOF");
+        let den:       u8 = *stream.read().expect("Unexpected EOF");
+
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+
+        Ok(Box::new(Self::new(time, num, Self::pow(den)?)))
+    }
+
+    fn write<T: stream::OutStream<u8>>(self, stream: &mut T) -> Result<(), String> {
+        VarLen::new(self.time - self.previous).write(stream)?;
+
+        stream.write(0xFF)?; // Time signature
+        stream.write(0x58)?;
+        stream.write(0x04)?;
+        stream.write(self.numerator)?;
+        stream.write(Self::inv(self.denominator)?)?;
+        stream.write(0x18)?;
+        stream.write(0x08)?;
+
+        Ok(()) 
+    }
+}
+
+impl Streamable<u8> for KeySignature {
+    fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
+        // TODO : Missing running status
+        let time:      u32 = (*VarLen::read(stream)?).val;
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let _:         u8 = *stream.read().expect("Unexpected EOF");
+        let sf:         u8 = *stream.read().expect("Unexpected EOF");
+        let mi:         u8 = *stream.read().expect("Unexpected EOF");
+
+        Ok(Box::new(Self::new(time, sf, mi != 0)))
+    }
+
+    fn write<T: stream::OutStream<u8>>(self, stream: &mut T) -> Result<(), String> {
+        VarLen::new(self.time - self.previous).write(stream)?;
+
+        stream.write(0xFF)?; // Time signature
+        stream.write(0x59)?;
+        stream.write(0x02)?;
+        stream.write(self.accidentals)?;
+        stream.write(self.minor as u8)?;
+
         Ok(()) 
     }
 }

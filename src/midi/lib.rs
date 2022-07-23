@@ -100,11 +100,12 @@ pub struct MidiObj{
     pub tracks: Vec<Track>,
     pub tempo: u32,
     pub time_signature: (u8, u8),
+    pub key_signature: (u8, bool),
 }
 
 impl MidiObj {
     pub fn new() -> MidiObj {
-        MidiObj { tracks: Vec::new(), tempo: 120, time_signature: (4, 4) }
+        MidiObj { tracks: Vec::new(), tempo: 120, time_signature: (4, 4), key_signature: (0, false) }
     }
 
     pub fn add_track(&mut self, track: Track) -> &mut MidiObj {
@@ -119,6 +120,11 @@ impl MidiObj {
 
     pub fn set_time_signature(&mut self, time_signature: (u8, u8)) -> &mut MidiObj {
         self.time_signature = time_signature;
+        self
+    }
+
+    pub fn set_key_signature(&mut self, key_signature: (u8, bool)) -> &mut MidiObj {
+        self.key_signature = key_signature;
         self
     }
 }
