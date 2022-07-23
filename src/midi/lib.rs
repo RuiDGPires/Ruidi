@@ -66,13 +66,11 @@ pub struct Track{
     i: usize,
     pub instrument: Instrument,
     pub dynamics: u8,
-
-    pub tick: u32,
 }
 
 impl Track {
     pub fn new() -> Track {
-        Track { notes: HashMap::new(), i: 0, instrument: Instrument::AcousticGrandPiano, dynamics: dynamics::MEZZO_FORTE, tick: 0}
+        Track { notes: HashMap::new(), i: 0, instrument: Instrument::AcousticGrandPiano, dynamics: dynamics::MEZZO_FORTE }
     }
 
     pub fn add_note(&mut self, note: Note) -> &mut Track {

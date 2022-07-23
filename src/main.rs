@@ -26,26 +26,24 @@ fn main() {
         ;
 
     let mut track1 = Track::new();
+    let mut track2 = Track::new();
 
     track1.set_instrument(Instrument::TenorSax)
-        .set_dynamics(dynamics::FORTE)
-        ;
+        .set_dynamics(dynamics::FORTE);
 
     for i in 0..8 {
         track1.add_note(note!(dynamics::AUTO, durations::QUARTER, octave(C + i, 4)));
     }
-    obj.add_track(track1);
-
-    let mut track2 = Track::new();
 
     track2.set_instrument(Instrument::AltoSax)
-        .set_dynamics(dynamics::FORTE)
-        ;
+        .set_dynamics(dynamics::FORTE);
 
     for i in 0..16 {
         track2.add_note(note!(dynamics::AUTO, durations::EIGHTH, octave(C + i, 4), octave(C + i - 4, 4)));
     }
-    obj.add_track(track2);
+
+    obj.add_track(track1)
+        .add_track(track2);
 
     obj.to_stream(FileByteOutStream::new(output_file)).unwrap();
 }
