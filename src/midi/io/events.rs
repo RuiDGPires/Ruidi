@@ -51,6 +51,18 @@ pub struct KeySignature {
     previous: u32,
 }
 
+#[derive(Copy, Clone)]
+pub struct ControlChange {
+    pub time: u32,
+    pub channel: u8,
+    pub id: u8,
+    pub val: u8,
+
+    previous: u32,
+}
+
+
+
 impl NoteOn {
     pub fn new(time: u32, vel: u8, note: u8, channel: u8) -> Self {
         Self{time: time, vel: vel, note: note, channel: channel, previous: 0}
@@ -128,6 +140,19 @@ impl TimeSignature {
 impl KeySignature {
     pub fn new(time: u32, accidentals: u8, minor: bool) -> Self{
         Self{time: time, accidentals: accidentals, minor: minor, previous: 0}
+    }
+
+    pub fn on_tick(&mut self, time: &mut u32) -> &Self {
+        self.previous = *time;
+        *time = self.time;
+
+        self
+    }
+}
+
+impl ControlChange {
+    pub fn new(time: u32, id: u8, val: u8, channel: u8) -> Self{
+        Self{time: time, id: id, val: val, channel = channel, previous: 0}
     }
 
     pub fn on_tick(&mut self, time: &mut u32) -> &Self {
@@ -261,6 +286,28 @@ impl Streamable<u8> for KeySignature {
         stream.write(0x02)?;
         stream.write(self.accidentals)?;
         stream.write(self.minor as u8)?;
+
+        Ok(()) 
+    }
+}
+
+impl Streamable<u8> for ControlChange {
+    fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
+        // TODO : Missing running status
+        let time:      u32 = (*VarLen::read(stream)?).val;
+        let channel:        u8 = *stream.read().expect("Unexpected EOF") & 0x0F;
+        let id:        u8 = *stream.read().expect("Unexpected EOF");
+        let val:       u8 = *stream.read().expect("Unexpected EOF");
+
+        Ok(Box::new(Self::new(time, id, val, channel)))
+    }
+
+    fn write<T: stream::OutStream<u8>>(self, stream: &mut T) -> Result<(), String> {
+        VarLen::new(self.time - self.previous).write(stream)?;
+
+        stream.write(0xB0 | self.channel)?; // Time signature
+        stream.write(self.id  & 0x7F)?;
+        stream.write(self.val & 0x7F)?;
 
         Ok(()) 
     }
