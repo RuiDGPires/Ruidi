@@ -152,7 +152,7 @@ impl KeySignature {
 
 impl ControlChange {
     pub fn new(time: u32, id: u8, val: u8, channel: u8) -> Self{
-        Self{time: time, id: id, val: val, channel = channel, previous: 0}
+        Self{time: time, id: id, val: val, channel: channel, previous: 0}
     }
 
     pub fn on_tick(&mut self, time: &mut u32) -> &Self {

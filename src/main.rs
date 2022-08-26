@@ -1,4 +1,4 @@
-use midi::{io::stream::{FileByteOutStream, Sourceable}, MidiObj, Track, Note, note};
+use midi::{io::stream::{FileByteInStream, FileByteOutStream, Sourceable}, MidiObj, Track, Note, note};
 use midi::instruments::Instrument;
 use midi::pitch::*;
 use midi::dynamics;
@@ -7,17 +7,41 @@ use midi::durations;
 use std::env;
 
 const USAGE: &str = "./Ruidi <midi_file>";
+const DEFAULT_OUTPUT_FILE: &str = "/tmp/default.mid";
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let mut output_file = String::from("/tmp/default.mid");
+struct Conf {
+    outfile: String,
+    infile:  String
+}
 
-    match args.len() {
-        2 => {output_file = args[1].clone();}
-        1 => {}
-        _ => {panic!("Invalid number of command line arguments\nUsage: \n\t{}", USAGE);}
+impl Conf {
+    pub fn from_args(argv: &Vec<String>) -> Self {
+        let mut i: usize = 1;
+        let mut infile: String = String::from("");
+        let mut outfile: String = String::from(DEFAULT_OUTPUT_FILE);
+        let argc = argv.len();
+
+        if argc == 1 {
+            panic!("Invalid number of command line arguments\nUsage: \n\t{}", USAGE);
+        }
+
+        while i < argc {
+            if argv[i] == "-i" {
+                i += 1;
+                infile = argv[i].clone();
+            }else if argv[i] == "-o" {
+                i += 1;
+                outfile = argv[i].clone();
+            }
+
+            i += 1;
+        }
+
+        Self {outfile: outfile, infile: infile}
     }
-    
+}
+
+fn demo() -> MidiObj{
     let mut obj = MidiObj::new();
 
     obj.set_tempo(120)
@@ -45,5 +69,20 @@ fn main() {
     obj.add_track(track1)
         .add_track(track2);
 
-    obj.to_stream(FileByteOutStream::new(output_file)).unwrap();
+    obj
+}
+
+
+
+fn main() {
+    let conf: Conf = Conf::from_args(&env::args().collect());
+    
+    {
+        if conf.infile != "" {
+            *MidiObj::from_stream(FileByteInStream::new(conf.infile)).unwrap()
+        } else {
+            demo()
+        }
+
+    }.to_stream(FileByteOutStream::new(conf.outfile)).unwrap();
 }
