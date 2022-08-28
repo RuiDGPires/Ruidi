@@ -5,6 +5,12 @@ pub struct VarLen {
     pub size: u8,
 }
 
+impl From<VarLen> for u32 {
+    fn from(item: VarLen) -> Self {
+        item.val
+    }
+}
+
 impl Streamable<u8> for VarLen {
     fn read<T: stream::InStream<u8>>(stream: &mut T) -> Result<Box<Self>, String> {
         let mut val: u32 = 0;

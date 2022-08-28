@@ -9,6 +9,7 @@ pub trait Sourceable<I> {
 
 pub trait InStream<T> {
     fn read(&mut self) -> Option<&T>;
+    fn peek(&mut self) -> Option<&T>;
 }
 
 pub trait OutStream<T> {
@@ -38,12 +39,18 @@ impl FileByteInStream {
 
         Self { contents: contents, pos: 0 }
     }
+
 }
 
 impl InStream<u8> for FileByteInStream {
     fn read(&mut self) -> Option<&u8> {
         let ret = self.contents.iter().skip(self.pos).next();
         self.pos += 1;
+        ret
+    }
+
+    fn peek(&mut self) -> Option<&u8> {
+        let ret = self.contents.iter().skip(self.pos).next();
         ret
     }
 }
@@ -79,6 +86,10 @@ impl InStream<u8> for VecByteStream {
     fn read(&mut self) -> Option<&u8> {
         let ret = self.contents.iter().skip(self.pos).next();
         self.pos += 1;
+        ret
+    }
+    fn peek(&mut self) -> Option<&u8> {
+        let ret = self.contents.iter().skip(self.pos).next();
         ret
     }
 }

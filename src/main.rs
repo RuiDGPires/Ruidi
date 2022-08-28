@@ -6,7 +6,6 @@ use midi::durations;
 
 use std::env;
 
-const USAGE: &str = "./Ruidi <midi_file>";
 const DEFAULT_OUTPUT_FILE: &str = "/tmp/default.mid";
 
 struct Conf {
@@ -17,13 +16,9 @@ struct Conf {
 impl Conf {
     pub fn from_args(argv: &Vec<String>) -> Self {
         let mut i: usize = 1;
-        let mut infile: String = String::from("");
+        let mut infile:  String = String::from("");
         let mut outfile: String = String::from(DEFAULT_OUTPUT_FILE);
         let argc = argv.len();
-
-        if argc == 1 {
-            panic!("Invalid number of command line arguments\nUsage: \n\t{}", USAGE);
-        }
 
         while i < argc {
             if argv[i] == "-i" {
@@ -71,8 +66,6 @@ fn demo() -> MidiObj{
 
     obj
 }
-
-
 
 fn main() {
     let conf: Conf = Conf::from_args(&env::args().collect());

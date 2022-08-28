@@ -34,6 +34,7 @@ pub mod durations {
 use std::collections::HashMap;
 use instruments::Instrument;
 
+#[derive(Debug)]
 pub struct Note {
     pub vel: u8,
     pub notes: Vec<u8>,
@@ -66,6 +67,20 @@ pub struct Track{
     i: usize,
     pub instrument: Instrument,
     pub dynamics: u8,
+}
+
+use std::fmt;
+impl fmt::Debug for Track{
+    fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Notes: \n")?;
+        for i in 0..self.i {
+            match self.notes.get(&i) {
+                Some(note) => {write!(f, "{:?}\n", note)?}
+                None => {}
+            }
+        } 
+        write!(f, "")
+    }
 }
 
 impl Track {

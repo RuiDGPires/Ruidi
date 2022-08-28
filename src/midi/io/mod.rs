@@ -3,8 +3,22 @@ mod tests;
 mod util;
 mod events;
 
-use crate::{MidiObj, Note, dynamics};
+use crate::{MidiObj, Track, note, Note, dynamics};
 use util::Streamable;
+use std::collections::HashMap;
+
+#[derive(Hash)]
+struct NoteEvent {
+    pub note: u8,
+    pub channel: u8,
+}
+
+impl PartialEq for NoteEvent {
+    fn eq(&self, other: &Self) -> bool {
+        self.note == other.note && self.channel == other.channel     
+    }
+}
+impl Eq for NoteEvent {}
 
 
 impl stream::Sourceable<u8> for MidiObj {
@@ -23,23 +37,66 @@ impl stream::Sourceable<u8> for MidiObj {
         println!("Number of tracks: {}", ntrks);
         println!("Division: {}", division);
 
+        let mut obj = MidiObj::new();
+
         loop {
             if !util::check_str(&mut stream, "MTrk") {
                 break;
             }
             let length: u32 = *u32::read(&mut stream)?;
+            let mut note_events = HashMap::new();
+            let mut track = Track::new();
+            let mut current_time: u64 = 0;
 
             let mut i = 0;
             while i < length{
                 // Parse events
-                let varlen: util::VarLen = *util::VarLen::read(&mut stream)?;
-                i += varlen.size as u32;
-                let _delta_time = varlen.val;
+                let time: util::VarLen = *util::VarLen::read(&mut stream)?;
+                i += time.size as u32;
+                current_time += u32::from(time) as u64;
+                
+                match *stream.peek().unwrap() {
+                    events::NoteOn::CODE => {
+                        let mut event = *events::NoteOn::read(&mut stream)?;
+                        event.with_time(current_time);
 
+                        let note_event = NoteEvent{note: event.note, channel: event.channel};
+
+                        if !note_events.contains_key(&note_event) {
+                            note_events.insert(note_event, event);
+                        }
+                    }
+                    events::NoteOff::CODE => {
+                        let event = *events::NoteOff::read(&mut stream)?;
+
+                        let note_event = NoteEvent{note: event.note, channel: event.channel};
+
+                        match note_events.remove(&note_event) {
+                            Some(event) => {
+                                track.add_note(note!(event.vel, (current_time - event.time) as u32, event.note));
+                            }
+                            None => {}
+                        }
+                        
+                    }
+                    0xFF => {
+                        _ = stream.read();
+                        
+                        match * u16::read(&mut stream)? {
+                            _ => {
+
+                            }
+                        }
+                    }
+                    _    => {}
+                }
             }
+
+            println!("{:?}", track);
+            obj.add_track(track);
         }
 
-        Ok(Box::new(Self::new()))
+        Ok(Box::new(obj))
     }
 
     fn to_stream<T: stream::OutStream<u8>>(&self, mut stream: T) -> Result<(), String> {
@@ -107,7 +164,7 @@ impl stream::Sourceable<u8> for MidiObj {
                 }
 
                 for pitch in &note.notes {
-                    events::NoteOff::new(note.duration, *pitch, channel).on_tick(&mut tick).write(&mut track_stream)?;
+                    events::NoteOff::new(note.duration as u64, *pitch, channel).on_tick(&mut tick).write(&mut track_stream)?;
                 }
             }
 
