@@ -76,6 +76,5 @@ fn main() {
         } else {
             demo()
         }
-
     }.to_stream(FileByteOutStream::new(conf.outfile)).unwrap();
 }

@@ -118,7 +118,7 @@ impl Tempo {
 }
 
 impl TimeSignature {
-    pub const CODE: u32 = 0x5804;
+    pub const CODE: u16 = 0x5804;
 
     pub fn with_time(&mut self, time: u64) -> &Self {
         self.time = time;
@@ -160,7 +160,7 @@ impl TimeSignature {
 }
 
 impl KeySignature {
-    pub const CODE: u32 = 0x5902;
+    pub const CODE: u16 = 0x5902;
 
     pub fn with_time(&mut self, time: u64) -> &Self {
         self.time = time;

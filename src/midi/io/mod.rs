@@ -71,18 +71,33 @@ impl stream::Sourceable<u8> for MidiObj {
 
                         let note_event = NoteEvent{note: event.note, channel: event.channel};
 
-                        match note_events.remove(&note_event) {
-                            Some(event) => {
-                                track.add_note(note!(event.vel, (current_time - event.time) as u32, event.note));
-                            }
-                            None => {}
+                        if let Some(event) =  note_events.remove(&note_event) {
+                            track.add_note(note!(event.vel, (current_time - event.time) as u32, event.note));
                         }
                         
                     }
                     0xFF => {
                         _ = stream.read();
                         
-                        match * u16::read(&mut stream)? {
+                        match *u16::read(&mut stream)? {
+                            events::TimeSignature::CODE => {
+                                let event = *events::TimeSignature::read(&mut stream)?;
+                                        
+                                obj.set_time_signature((event.numerator, event.denominator));
+                            }
+                            events::KeySignature::CODE => {
+                                let event = *events::KeySignature::read(&mut stream)?;
+                                        
+                                obj.set_key_signature((event.accidentals, event.minor));
+                            }
+                            events::Tempo::CODE => {
+                                let event = *events::Tempo::read(&mut stream)?;
+                                        
+                                obj.set_tempo(event.bpm);
+                            }
+                            0x2F00 => {
+                                break;
+                            }
                             _ => {
 
                             }
@@ -124,8 +139,6 @@ impl stream::Sourceable<u8> for MidiObj {
 
         events::Tempo::new(0, self.tempo).on_tick(&mut 0).write(&mut track_stream)?; 
         events::KeySignature::new(0, self.key_signature.0, self.key_signature.1).on_tick(&mut 0).write(&mut track_stream)?;
-
-        events::TimeSignature::new(4*96, 3, 4).on_tick(&mut 0).write(&mut track_stream)?;
 
         util::VarLen::new(0).write(&mut track_stream)?;
         track_stream.write(0xFF)?; // EOT
