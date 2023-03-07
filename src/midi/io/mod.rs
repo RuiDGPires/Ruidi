@@ -146,7 +146,7 @@ impl stream::Sourceable<u8> for MidiObj {
         track_stream.write(0)?;
 
         (track_stream.size() as u32).write(&mut stream)?; // Track size
-        track_stream.into_filestream(&mut stream)?;
+        track_stream.into_stream(&mut stream)?;
         }
         //----
 
@@ -187,7 +187,7 @@ impl stream::Sourceable<u8> for MidiObj {
             track_stream.write(0)?;
 
             (track_stream.size() as u32).write(&mut stream)?;
-            track_stream.into_filestream(&mut stream)?;
+            track_stream.into_stream(&mut stream)?;
         }
          
         Ok(())

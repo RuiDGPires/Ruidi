@@ -64,7 +64,7 @@ impl VecByteStream {
         self.contents
     }
 
-    pub fn into_filestream<T: OutStream<u8>>(self, stream: &mut T) -> Result<(), String>{
+    pub fn into_stream<T: OutStream<u8>>(self, stream: &mut T) -> Result<(), String>{
         for item in self.contents {
             stream.write(item)?;
         }
